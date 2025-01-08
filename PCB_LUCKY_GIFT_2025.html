@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <title>PCB Lucky Gift</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background: background: url('bg.jpg'), radial-gradient(circle, #ff7e5f, #feb47b);
+            background-size: cover;
+            color: white;
+            text-align: center;
+            overflow: hidden;
+        }
+
+		.grid { 
+			display: grid;
+			grid-template-columns: repeat(11, calc(80px * 1.1667)); /* Tăng chiều dài lên 1/6 */
+			grid-template-rows: repeat(5, 80px); /* Giữ nguyên chiều cao */
+			gap: 5px;
+			margin-top:0px;
+		}
+
+		.grid-item {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border: 2px solid white;
+			color: black;
+			font-weight: 500;
+			font-size: 16px;
+			border-radius: 8px;
+			user-select: none;
+			background-color: white;
+			transition: background 0.3s, color 0.3s;
+			width: calc(80px * 1.1667); /* Đặt chiều dài phù hợp với cột */
+			height: 80px; /* Giữ nguyên chiều cao */
+		}
+
+        .grid-item.disabled {
+            background: #cccccc;
+            color: #666666;
+            pointer-events: none;
+        }
+
+        .highlight {
+            background: #29fe26 !important; /* Màu xanh highlight */
+            color: white;
+        }
+
+        .winner {
+            background: red !important;
+            color: white !important;
+        }
+
+        .previous-winner {
+            background: #0050b6 !important; /* Màu xanh #0050b6 */
+            color: white !important;
+        }
+
+        button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 70px; /* Đặt kích thước cụ thể */
+            height: 70px; /* Đảm bảo chiều cao bằng chiều rộng */        
+            display: inline-block;
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;            
+            text-align: center;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2), -4px -4px 10px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+        button:hover {
+             box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.3), -8px -8px 20px rgba(255, 255, 255, 0.5);
+        }
+        button:active {
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.3);           
+        }
+        .btn-start {          
+            background-image: url('2025.png');
+            background-size: auto 80px; /* Chiều cao cố định, chiều rộng tự động */
+            background-position: center; /* Đặt ảnh căn bên trái và căn giữa theo chiều dọc */
+            background-repeat: no-repeat;
+
+            width: 100%; /* Chiều rộng dài thêm ra */
+            max-width: 500px; /* Đặt giới hạn chiều rộng nếu cần */
+            height: 80px; /* Chiều cao giữ nguyên */
+            display: flex; /* Sử dụng flexbox để căn giữa nội dung */
+            justify-content: center; /* Căn giữa theo chiều ngang */
+            align-items: center; /* Căn giữa theo chiều dọc */
+            padding-right:54px;
+            margin-top:10px;
+        }
+        .result {
+            margin: -30px 0 15px 0;
+            font-size: 24px;
+            font-weight: 500;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .result span {
+            color: #f1ff66;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            float: right; /* Đảm bảo nút căn phải trong dòng */
+            position: absolute; /* Căn đối với màn hình */
+            right: 0px; /* Căn vào bên phải màn hình với khoảng cách 10px */
+            top: 10px; /* Bạn có thể thay đổi giá trị này nếu muốn điều chỉnh vị trí từ trên xuống */
+        }
+
+        .fireworks {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .fireworks.active {
+            opacity: 1;
+            animation: fireworks-animation 1s linear infinite;
+        }
+
+        @keyframes fireworks-animation {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.9;
+            }
+            50% {
+                transform: scale(2) rotate(180deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 0.9;
+            }
+        }
+
+        .background {
+            background: url('bg.jpg'), radial-gradient(circle, #ff7e5f, #feb47b);
+            background-size: cover;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        h1{font-family: 'Roboto', sans-serif;}
+#confettiCanvas {
+    position: fixed; /* Đảm bảo canvas bao phủ toàn màn hình */
+    top: 0;
+    left: 0;
+    width: 100vw; /* Chiều rộng toàn màn hình */
+    height: 100vh; /* Chiều cao toàn màn hình */
+    pointer-events: none; /* Tránh tương tác chuột trên canvas */
+    z-index: 9999; /* Đảm bảo nằm trên cùng các phần tử khác */
+}
+    </style>
+</head>
+<body>	
+	<canvas id="confettiCanvas"></canvas>
+    <div class="background"></div>    
+    <input type="file" id="fileInput" accept=".txt">
+    <div class="result" id="result">CHÚC BẠN MAY MẮN!</div> <!-- Hiển thị thông báo ban đầu -->
+    <div class="fireworks" id="fireworks"></div>	
+    <div class="grid" id="grid"></div>    
+    <div class="btn-start">
+        <button id="start">GO</button>
+    </div>
+
+    <script>
+	const grid = document.getElementById('grid');
+	const startButton = document.getElementById('start');
+	const fileInput = document.getElementById('fileInput');
+	const resultDiv = document.getElementById('result');
+	const fireworksDiv = document.getElementById('fireworks');
+
+	let rewards = [];
+	let availableCells = [];
+	let previousWinner = null;  // Thêm biến để lưu trữ ô trúng thưởng trước
+	let highlightedCells = []; // Lưu các ô đã được highlight trong quá trình quay
+
+	const allowedColors = [
+		"#117864", "#c0392b", "#7d3c98", "#2471a3", "#117864", 
+		"#196f3d", "#f39c12", "#d35400", "#5d6d7e", "#DE3163", 
+		"#FF0000", "#123f9e", "#000000"
+	];
+
+	function shuffleArray(array) {
+		for (let i = array.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[array[i], array[j]] = [array[j], array[i]];
+		}
+	}
+
+	function generateRandomColor() {
+		return allowedColors[Math.floor(Math.random() * allowedColors.length)];
+	}
+
+	function createGrid() {
+		grid.innerHTML = '';
+		rewards.forEach((reward, index) => {
+			const cell = document.createElement('div');
+			cell.className = 'grid-item';
+			cell.textContent = reward;
+			cell.style.color = generateRandomColor();
+			grid.appendChild(cell);
+		});
+		availableCells = Array.from(document.getElementsByClassName('grid-item'));
+	}
+
+	fileInput.addEventListener('change', (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				rewards = e.target.result.split('\n').filter(line => line.trim() !== '');
+				if (rewards.length < 55) { // Thay đổi số phần quà cho phù hợp với 5x11 = 55
+					alert('File phải có đủ 55 phần quà.');
+					return;
+				}
+				shuffleArray(rewards);
+				createGrid();
+			};
+			reader.readAsText(file);
+		}
+	});
+
+	startButton.addEventListener('click', () => {
+		if (availableCells.length === 0) {
+			alert('Đã hết phần quà!');
+			return;
+		}
+
+		// Disable button to prevent multiple clicks
+		startButton.disabled = true;
+
+		// Reset message
+		resultDiv.innerHTML = 'CHÚC BẠN MAY MẮN!';
+		resultDiv.style.display = 'block';
+
+		const totalCells = availableCells.length;
+		let intervalCount = 0;
+		const maxIntervals = 25; // 5 seconds = 25 intervals, highlighting 5 cells per second
+
+		if (previousWinner) {
+			previousWinner.classList.remove('winner');
+			previousWinner.classList.add('previous-winner');
+		}
+
+		// Add background audio effect
+		const spinSound = new Audio('spin.mp3');
+		spinSound.loop = true; // Loop sound while spinning
+		spinSound.play();
+
+		const interval = setInterval(() => {
+			highlightedCells.forEach(cell => cell.classList.remove('highlight'));
+			highlightedCells = [];
+
+			for (let i = 0; i < 5 && i < availableCells.length; i++) {
+				const randomIndex = Math.floor(Math.random() * totalCells);
+				const randomCell = availableCells[randomIndex];
+				randomCell.classList.add('highlight');
+				highlightedCells.push(randomCell);
+			}
+
+			intervalCount++;
+
+			if (intervalCount >= maxIntervals) {
+				clearInterval(interval);
+
+				highlightedCells.forEach(cell => cell.classList.remove('highlight'));
+
+				const winnerIndex = Math.floor(Math.random() * availableCells.length);
+				const winnerCell = availableCells[winnerIndex];
+				winnerCell.classList.add('winner');
+
+				resultDiv.innerHTML = `Chúc mừng, phần quà <span>${winnerCell.textContent}</span> đã thuộc về bạn!`;
+				resultDiv.style.display = 'block';
+				
+				triggerConfetti();
+
+				fireworksDiv.classList.add('active');
+				setTimeout(() => {
+					fireworksDiv.classList.remove('active');
+				}, 3000);
+
+				previousWinner = winnerCell;
+				availableCells.splice(winnerIndex, 1);
+
+				// Stop audio when spinning ends
+				spinSound.pause();
+				spinSound.currentTime = 0;
+
+				// Re-enable the start button
+				startButton.disabled = false;
+			}
+		}, 200);
+	});
+	
+	// Ngăn chặn làm mới hoặc đóng trang
+    window.addEventListener("beforeunload", (event) => {
+        event.preventDefault();
+        event.returnValue = ""; // Hiển thị hộp thoại xác nhận
+    });
+	function startConfetti() {
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = "fixed";
+    canvas.style.top = 0;
+    canvas.style.left = 0;
+    canvas.style.pointerEvents = "none";
+
+    const confettiColors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ffffff", "#ff00ff"];
+    const confettiPieces = [];
+
+    for (let i = 0; i < 150; i++) {
+        confettiPieces.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 10 + 5,
+            color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+            speedX: Math.random() * 3 - 1.5,
+            speedY: Math.random() * 5 + 2,
+            rotation: Math.random() * 360,
+            rotationSpeed: Math.random() * 10 - 5,
+        });
+    }
+
+    function drawConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        confettiPieces.forEach((piece) => {
+            ctx.save();
+            ctx.translate(piece.x, piece.y);
+            ctx.rotate((piece.rotation * Math.PI) / 180);
+            ctx.fillStyle = piece.color;
+            ctx.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size);
+            ctx.restore();
+
+            piece.x += piece.speedX;
+            piece.y += piece.speedY;
+            piece.rotation += piece.rotationSpeed;
+
+            if (piece.y > canvas.height) {
+                piece.y = -piece.size;
+                piece.x = Math.random() * canvas.width;
+            }
+        });
+
+        requestAnimationFrame(drawConfetti);
+    }
+
+    drawConfetti();
+
+    // Dừng confetti sau 5 giây
+    setTimeout(() => {
+        canvas.remove();
+    }, 5000);
+}
+
+// Kích hoạt hiệu ứng pháo giấy sau khi tìm được người trúng thưởng
+function triggerConfetti() {
+    const confettiCanvas = document.createElement("canvas");
+    confettiCanvas.id = "confettiCanvas";
+    document.body.appendChild(confettiCanvas);
+    startConfetti();
+}
+
+</script>
+
+</body>
+</html>
