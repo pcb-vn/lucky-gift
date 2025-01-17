@@ -254,6 +254,8 @@
 		}
 	});
 
+	restoreState();
+
 	startButton.addEventListener('click', () => {
 		if (availableCells.length === 0) {
 			alert('Đã hết phần quà!');
@@ -323,6 +325,8 @@
 				// Re-enable the start button
 				startButton.disabled = false;
 			}
+			 // Lưu trạng thái
+			saveState();
 		}, 200);
 	});
 	
@@ -330,6 +334,7 @@
     window.addEventListener("beforeunload", (event) => {
         event.preventDefault();
         event.returnValue = ""; // Hiển thị hộp thoại xác nhận
+		saveState(); // Lưu trạng thái trước khi đóng
     });
 	function startConfetti() {
     const canvas = document.getElementById("confettiCanvas");
@@ -398,6 +403,47 @@ function triggerConfetti() {
     startConfetti();
 }
 
+// Hàm lưu trạng thái vào localStorage
+function saveState() {
+    const state = {
+        rewards: rewards,
+        availableCells: availableCells.map(cell => cell.textContent),
+        previousWinner: previousWinner ? previousWinner.textContent : null,
+    };
+    localStorage.setItem('gridState', JSON.stringify(state));
+}
+
+// Hàm khôi phục trạng thái từ localStorage
+function restoreState() {
+    const savedState = localStorage.getItem('gridState');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        rewards = state.rewards || [];
+        previousWinner = null;
+
+        createGrid();
+
+        // Đánh dấu các ô đã quay
+        const savedAvailableCells = state.availableCells || [];
+        availableCells = Array.from(document.getElementsByClassName('grid-item')).filter(cell => {
+            if (!savedAvailableCells.includes(cell.textContent)) {
+                cell.classList.add('disabled'); // Đánh dấu ô đã trúng thưởng
+				cell.classList.add('previous-winner');
+                return false;
+            }
+            return true;
+        });
+
+        // Đặt ô trúng thưởng trước đó (nếu có)
+        if (state.previousWinner) {
+            const winnerCell = Array.from(document.getElementsByClassName('grid-item')).find(cell => cell.textContent === state.previousWinner);
+            if (winnerCell) {
+                winnerCell.classList.add('previous-winner');
+                previousWinner = winnerCell;
+            }
+        }
+    }
+}
 </script>
 
 </body>
